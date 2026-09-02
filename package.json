@@ -1,0 +1,24 @@
+{
+  "name": "lemuria-travel-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lemuria Travel AI — Phase 1 Travel CRM for Lemuria India Holidays",
+  "engines": { "node": ">=20.11" },
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "db:generate": "pnpm --filter @lemuria/api db:generate",
+    "db:migrate": "pnpm --filter @lemuria/api db:migrate",
+    "db:seed": "pnpm --filter @lemuria/api db:seed",
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down"
+  },
+  "devDependencies": {
+    "typescript": "5.7.2",
+    "prettier": "3.4.2"
+  }
+}
