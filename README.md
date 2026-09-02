@@ -177,3 +177,4 @@ permission checks only hide UI — every rule is enforced again server-side.
 - [SECURITY.md](docs/SECURITY.md) — auth, RBAC, documents, audit
 - [DEPLOYMENT.md](docs/DEPLOYMENT.md) — environments and deploy steps
 - [AI.md](docs/AI.md) — AI abstraction, governance, human approval
+- [OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) — **six decisions needed from Lemuria**, GST first
