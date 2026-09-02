@@ -8,6 +8,8 @@ import { CustomerDetailPage } from '@/features/customers/CustomerDetailPage';
 import { CustomersPage } from '@/features/customers/CustomersPage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { DocumentExpiryPage } from '@/features/documents/DocumentExpiryPage';
+import { QuotationBuilderPage } from '@/features/quotations/QuotationBuilderPage';
+import { QuotationsPage } from '@/features/quotations/QuotationsPage';
 import { NewEnquiryModal } from '@/features/leads/NewEnquiryModal';
 import { LeadDetailPage } from '@/features/leads/LeadDetailPage';
 import { LeadsPage } from '@/features/leads/LeadsPage';
@@ -46,6 +48,8 @@ export function App() {
           <Route path="/customers" element={<CustomersPage />} />
           <Route path="/customers/:id" element={<CustomerDetailPage />} />
           <Route path="/documents" element={<DocumentExpiryPage />} />
+          <Route path="/quotations" element={<QuotationsPage />} />
+          <Route path="/quotations/:id" element={<QuotationBuilderPage />} />
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />

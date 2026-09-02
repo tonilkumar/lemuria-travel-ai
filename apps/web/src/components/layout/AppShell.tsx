@@ -57,7 +57,7 @@ const NAVIGATION: NavGroup[] = [
   {
     label: 'Create',
     items: [
-      { to: '/quotations', label: 'AI Quotation', icon: FileText, permission: 'quotation.read', upcoming: true },
+      { to: '/quotations', label: 'AI Quotation', icon: FileText, permission: 'quotation.read' },
       { to: '/itineraries', label: 'AI Itinerary', icon: Map, permission: 'itinerary.read', upcoming: true },
     ],
   },
