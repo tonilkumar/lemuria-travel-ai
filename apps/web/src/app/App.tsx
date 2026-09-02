@@ -4,6 +4,8 @@ import { AppShell } from '@/components/layout/AppShell';
 import { LoadingState } from '@/components/ui';
 import { useAuth } from '@/features/auth/AuthContext';
 import { LoginPage } from '@/features/auth/LoginPage';
+import { CustomerDetailPage } from '@/features/customers/CustomerDetailPage';
+import { CustomersPage } from '@/features/customers/CustomersPage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { NewEnquiryModal } from '@/features/leads/NewEnquiryModal';
 import { LeadDetailPage } from '@/features/leads/LeadDetailPage';
@@ -40,6 +42,8 @@ export function App() {
           <Route path="/" element={<DashboardPage onNewEnquiry={() => setEnquiryOpen(true)} />} />
           <Route path="/leads" element={<LeadsPage onNewEnquiry={() => setEnquiryOpen(true)} />} />
           <Route path="/leads/:id" element={<LeadDetailPage />} />
+          <Route path="/customers" element={<CustomersPage />} />
+          <Route path="/customers/:id" element={<CustomerDetailPage />} />
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />

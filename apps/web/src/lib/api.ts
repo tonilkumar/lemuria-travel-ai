@@ -101,6 +101,11 @@ interface RequestOptions {
   _retried?: boolean;
 }
 
+/** FormData must not be JSON-stringified, and must not carry a Content-Type
+ *  header — the browser has to set its own multipart boundary. */
+const isFormData = (v: unknown): v is FormData =>
+  typeof FormData !== 'undefined' && v instanceof FormData;
+
 function buildUrl(path: string, query?: Record<string, unknown>): string {
   const url = new URL(`${BASE}${path}`, window.location.origin);
   if (query) {
@@ -120,7 +125,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const { method = 'GET', body, query, signal } = options;
 
   const headers: Record<string, string> = {};
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  if (body !== undefined && !isFormData(body)) headers['Content-Type'] = 'application/json';
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
   let res: Response;
@@ -129,7 +134,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       method,
       headers,
       credentials: 'same-origin',
-      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      ...(body !== undefined
+        ? { body: isFormData(body) ? body : JSON.stringify(body) }
+        : {}),
       ...(signal ? { signal } : {}),
     });
   } catch (err) {
@@ -166,8 +173,38 @@ export const api = {
   patch: <T>(path: string, body?: unknown) =>
     request<ApiSuccess<T>>(path, { method: 'PATCH', body }).then((r) => r.data),
 
+  put: <T>(path: string, body?: unknown) =>
+    request<ApiSuccess<T>>(path, { method: 'PUT', body }).then((r) => r.data),
+
   delete: <T>(path: string) =>
     request<ApiSuccess<T>>(path, { method: 'DELETE' }).then((r) => r.data),
+
+  /** Multipart upload. Pass a FormData; the browser sets the boundary itself. */
+  upload: <T>(path: string, form: FormData) =>
+    request<ApiSuccess<T>>(path, { method: 'POST', body: form }).then((r) => r.data),
+
+  /**
+   * Fetches a protected file as a blob. Downloads cannot be a plain link: the
+   * access token lives in memory, so the URL alone would 401.
+   */
+  download: async (path: string): Promise<{ blob: Blob; fileName: string }> => {
+    const headers: Record<string, string> = {};
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+
+    let res = await fetch(buildUrl(path), { headers, credentials: 'same-origin' });
+
+    if (res.status === 401 && (await refreshAccessToken())) {
+      const retryHeaders: Record<string, string> = {};
+      if (accessToken) retryHeaders.Authorization = `Bearer ${accessToken}`;
+      res = await fetch(buildUrl(path), { headers: retryHeaders, credentials: 'same-origin' });
+    }
+
+    if (!res.ok) throw await parseError(res);
+
+    const disposition = res.headers.get('content-disposition') ?? '';
+    const match = /filename="([^"]+)"/.exec(disposition);
+    return { blob: await res.blob(), fileName: match?.[1] ?? 'document' };
+  },
 
   refresh: refreshAccessToken,
 };

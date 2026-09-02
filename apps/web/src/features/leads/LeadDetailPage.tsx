@@ -1,4 +1,12 @@
-import { ArrowLeft, CalendarPlus, MessageCircle, Phone, StickyNote } from 'lucide-react';
+import {
+  ArrowLeft,
+  CalendarPlus,
+  MessageCircle,
+  Phone,
+  StickyNote,
+  UserCheck,
+  UserPlus,
+} from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
@@ -15,6 +23,7 @@ import {
   Textarea,
 } from '@/components/ui';
 import { useAuth } from '@/features/auth/AuthContext';
+import { ConvertLeadModal } from '@/features/customers/ConvertLeadModal';
 import { formatDate, formatMoney, formatPhone, formatRelativeDay, timeAgo } from '@/lib/format';
 import { useAddNote, useLead, useLeadTimeline } from './api';
 
@@ -43,6 +52,7 @@ export function LeadDetailPage() {
   const timeline = useLeadTimeline(id);
   const addNote = useAddNote();
   const [noteBody, setNoteBody] = useState('');
+  const [convertOpen, setConvertOpen] = useState(false);
 
   if (detail.isPending) return <LoadingState label="Loading lead" />;
   if (detail.isError) return <ErrorState error={detail.error} onRetry={() => void detail.refetch()} />;
@@ -104,13 +114,53 @@ export function LeadDetailPage() {
               WhatsApp
             </a>
             {can('followup.create') && (
-              <Button leadingIcon={<CalendarPlus className="size-4" aria-hidden />}>
+              <Button
+                variant="secondary"
+                leadingIcon={<CalendarPlus className="size-4" aria-hidden />}
+              >
                 Schedule follow-up
               </Button>
+            )}
+
+            {/* Converting is only offered where it is actually legal — an OPEN
+                lead would be rejected by the server, so do not tease it. */}
+            {can('lead.convert', 'customer.create') && lead.status !== 'CONVERTED' && (
+              <Button
+                leadingIcon={<UserPlus className="size-4" aria-hidden />}
+                disabled={lead.status === 'OPEN'}
+                title={
+                  lead.status === 'OPEN'
+                    ? 'Work the enquiry or send a quotation before converting'
+                    : undefined
+                }
+                onClick={() => setConvertOpen(true)}
+              >
+                Convert to customer
+              </Button>
+            )}
+
+            {lead.status === 'CONVERTED' && data.customer && (
+              <Link to={`/customers/${data.customer.id}`} className={ACTION_LINK}>
+                <UserCheck className="size-4" aria-hidden />
+                View customer
+              </Link>
             )}
           </div>
         </div>
       </div>
+
+      <ConvertLeadModal
+        open={convertOpen}
+        onClose={() => setConvertOpen(false)}
+        lead={{
+          id: lead.id,
+          leadCode: lead.leadCode,
+          customerName: lead.customerName,
+          phone: lead.phone,
+          email: lead.email ?? null,
+          customerId: lead.customerId ?? null,
+        }}
+      />
 
       <div className="grid gap-5 p-4 sm:p-6 xl:grid-cols-3">
         <div className="space-y-5 xl:col-span-2">

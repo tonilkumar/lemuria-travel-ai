@@ -49,7 +49,7 @@ const NAVIGATION: NavGroup[] = [
     label: 'Sales',
     items: [
       { to: '/leads', label: 'Leads & Follow-ups', icon: Users, permission: 'lead.read' },
-      { to: '/customers', label: 'Customers', icon: Building2, permission: 'customer.read', upcoming: true },
+      { to: '/customers', label: 'Customers', icon: Building2, permission: 'customer.read' },
     ],
   },
   {
