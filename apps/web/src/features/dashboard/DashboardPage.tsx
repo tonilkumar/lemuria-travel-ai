@@ -11,9 +11,18 @@ import {
   UserPlus,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { FunnelChart } from '@/components/charts/FunnelChart';
-import { RevenueChart } from '@/components/charts/RevenueChart';
+
+/**
+ * Recharts is ~380 kB and is only ever needed on this one card. Loading it
+ * lazily keeps it off the critical path for login and the Leads workspace.
+ * The funnel is hand-drawn with CSS, so it stays in the main bundle.
+ */
+const RevenueChart = lazy(() =>
+  import('@/components/charts/RevenueChart').then((m) => ({ default: m.RevenueChart })),
+);
 import { PageHeader } from '@/components/layout/AppShell';
 import {
   Avatar,
@@ -146,7 +155,9 @@ export function DashboardPage({ onNewEnquiry }: { onNewEnquiry: () => void }) {
               ) : revenue.isError ? (
                 <ErrorState error={revenue.error} onRetry={() => void revenue.refetch()} />
               ) : revenue.data && revenue.data.some((p) => p.amount > 0) ? (
-                <RevenueChart data={revenue.data} />
+                <Suspense fallback={<Skeleton className="h-[220px] w-full" />}>
+                  <RevenueChart data={revenue.data} />
+                </Suspense>
               ) : (
                 <EmptyState
                   title="No payments recorded yet"

@@ -20,5 +20,21 @@ export default defineConfig({
       '/api': { target: 'http://localhost:4000', changeOrigin: true },
     },
   },
-  build: { sourcemap: true, target: 'es2022' },
+  build: {
+    sourcemap: true,
+    target: 'es2022',
+    rollupOptions: {
+      output: {
+        // Split the rarely-changing vendors out of the app chunk so a code
+        // change does not force every user to re-download React. Recharts is
+        // deliberately NOT listed: naming it here would make Vite preload it from
+        // index.html and defeat the lazy import in DashboardPage.
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          query: ['@tanstack/react-query', '@tanstack/react-table'],
+          forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
+        },
+      },
+    },
+  },
 });
