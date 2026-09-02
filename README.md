@@ -17,7 +17,8 @@ lifecycle, and the same person stays one record however they reach us.
 | Customers 360 | **Shipped** |
 | Document repository | **Shipped** |
 | Lead → Customer conversion | **Shipped** |
-| Quotation / Itinerary / Visa / Passport | Schema + API surface ready, UI pending |
+| AI Quotation generator | **Shipped** |
+| Itinerary / Visa / Passport | Schema + API surface ready, UI pending |
 | Communication / Finance / Reports / LIA | Schema ready |
 
 The database schema covers all 12 Phase 1 modules (57 tables) so migrations stay
@@ -34,6 +35,8 @@ disabled and marked *Soon* rather than leading to a dead page.
 | Jobs | BullMQ on Redis |
 | Auth | JWT access tokens + rotating opaque refresh tokens, Argon2id hashing |
 | Storage | Provider interface with local-disk and S3-compatible drivers |
+| AI | Provider interface, Anthropic adapter, no-op default |
+| PDF | PDFKit — real vector documents, no headless browser |
 
 Rationale for each choice is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -179,5 +182,6 @@ permission checks only hide UI — every rule is enforced again server-side.
 - [API.md](docs/API.md) — conventions, envelope, error codes, endpoints
 - [SECURITY.md](docs/SECURITY.md) — auth, RBAC, documents, audit
 - [DEPLOYMENT.md](docs/DEPLOYMENT.md) — environments and deploy steps
+- [QUOTATIONS.md](docs/QUOTATIONS.md) — costing engine, tax configuration, approval
 - [AI.md](docs/AI.md) — AI abstraction, governance, human approval
 - [OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) — **six decisions needed from Lemuria**, GST first

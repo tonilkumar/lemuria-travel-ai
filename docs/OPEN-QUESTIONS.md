@@ -21,8 +21,16 @@ A wrong rate produces wrong invoices at scale, and the error surfaces at filing
 rather than at issue. This needs Lemuria's CA to confirm the treatment per
 service type before the quotation module ships.
 
-Where it lives: `quotation_packages.gst_bps`, defaulted in
-`apps/api/src/db/schema/quotations.ts`.
+**What has been built in the meantime:** the rate is no longer in code. It is a
+row in the `tax_rates` master-data table with a rate, a basis
+(gross / margin / exempt) and an `is_provisional` flag. Everything seeded is
+provisional, and while it is, the builder shows an amber notice, the list marks
+the row `tax*`, and **the PDF prints "Tax shown is indicative and subject to
+confirmation"**. Confirming the treatment is a settings change, not a rebuild —
+and clearing `is_provisional` is the single action that removes the caveat.
+
+Where it lives: the `tax_rates` table, seeded in
+`apps/api/src/db/seed/quotations.ts`. See [QUOTATIONS.md](QUOTATIONS.md).
 
 ## 2. Quotation approval thresholds
 
@@ -31,8 +39,12 @@ workflow, but names no numbers. `quotation_approvals.trigger_reason` records
 *why* approval was required; the thresholds themselves are unset.
 
 **Needed:** the rupee value above which a quote needs a manager, and the margin
-floor below which it does. Both should land in `settings` so they stay
-adjustable without a release.
+floor below which it does.
+
+Both now live in `settings` (`quotation.highValueThresholdPaise`,
+`quotation.minimumMarginBps`) and are seeded as placeholders — ₹5,00,000 and
+10%. The workflow is live and enforced; only the two numbers are guesses.
+A loss-making quote always needs approval regardless of what they are set to.
 
 ## 3. Lead scoring calibration
 

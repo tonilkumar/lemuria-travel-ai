@@ -188,6 +188,42 @@ Three rules govern this module:
   leading bytes decide. A text file renamed `.png` is rejected, and a ZIP is
   accepted only when the extension says it is a DOCX or XLSX.
 
+### Quotations
+
+| Method | Path | Permission |
+| --- | --- | --- |
+| GET | `/quotations` | `quotation.read` |
+| GET | `/quotations/summary` | `quotation.read` |
+| GET | `/quotations/tax-rates` | `quotation.read` |
+| POST | `/quotations` | `quotation.create` |
+| GET | `/quotations/:id` | `quotation.read` |
+| POST | `/quotations/:id/versions` | `quotation.update` |
+| PUT | `/quotations/versions/:versionId/packages` | `quotation.update` |
+| DELETE | `/quotations/versions/:versionId/packages/:packageId` | `quotation.update` |
+| PATCH | `/quotations/versions/:versionId/content` | `quotation.update` |
+| POST | `/quotations/versions/:versionId/submit` | `quotation.update` |
+| POST | `/quotations/versions/:versionId/decision` | `quotation.approve` |
+| POST | `/quotations/versions/:versionId/send` | `quotation.send` |
+| POST | `/quotations/versions/:versionId/outcome` | `quotation.update` |
+| POST | `/quotations/versions/:versionId/ai/draft` | `quotation.update` **+** `ai.use` |
+| POST | `/quotations/ai/drafts/:generationId/review` | `ai.approve` |
+| GET | `/quotations/versions/:versionId/ai/drafts` | `quotation.read` |
+| GET | `/quotations/versions/:versionId/pdf` | `quotation.read` |
+
+Full behaviour in [QUOTATIONS.md](QUOTATIONS.md). Four rules matter here:
+
+- **Derived money is never accepted from the client.** The package endpoint
+  takes costs, rates and lines; markup, tax, selling price and margin are
+  recomputed server-side on every write, so stored totals always reconcile
+  with the lines beneath them.
+- **Margin is gated.** Without `quotation.view_margin`, supplier cost, markup
+  and margin return `null` on every route, and the PDF builder does not select
+  them at all.
+- **Sending requires an approved version**, nobody approves their own
+  submission, and a rejection needs a comment.
+- **AI copy needs `ai.approve` to be applied.** Drafting returns a proposal;
+  only the review endpoint writes it into the quotation.
+
 ### Dashboard
 
 All require `dashboard.read`; company-wide figures additionally require
