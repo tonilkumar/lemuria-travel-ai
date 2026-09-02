@@ -5,6 +5,7 @@ import {
   CalendarClock,
   CreditCard,
   FileText,
+  FolderLock,
   LayoutDashboard,
   LifeBuoy,
   Mail,
@@ -50,6 +51,7 @@ const NAVIGATION: NavGroup[] = [
     items: [
       { to: '/leads', label: 'Leads & Follow-ups', icon: Users, permission: 'lead.read' },
       { to: '/customers', label: 'Customers', icon: Building2, permission: 'customer.read' },
+      { to: '/documents', label: 'Documents', icon: FolderLock, permission: 'document.read' },
     ],
   },
   {

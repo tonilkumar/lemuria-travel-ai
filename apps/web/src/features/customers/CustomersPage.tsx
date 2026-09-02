@@ -1,5 +1,5 @@
 import type { CustomerListQuery } from '@lemuria/shared';
-import { AlertTriangle, MessageCircle, Phone, Search, SlidersHorizontal, X } from 'lucide-react';
+import { AlertTriangle, MessageCircle, Phone, Plus, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/AppShell';
@@ -17,11 +17,13 @@ import {
   TableSkeleton,
   type TabItem,
 } from '@/components/ui';
+import { useAuth } from '@/features/auth/AuthContext';
 import { useAssignableUsers } from '@/features/leads/api';
 import { useDebounced } from '@/features/leads/useDebounced';
 import { formatDate, formatNumber, formatPhone, timeAgo } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { useCustomers, useCustomerSummary } from './api';
+import { CustomerFormModal } from './CustomerFormModal';
 import { TierBadge } from './TierBadge';
 
 type TabKey = 'ALL' | 'MINE' | 'REPEAT' | 'PLATINUM' | 'GOLD' | 'SILVER' | 'BRONZE';
@@ -37,7 +39,9 @@ const TAB_QUERY: Record<TabKey, Partial<CustomerListQuery>> = {
 };
 
 export function CustomersPage() {
+  const { can } = useAuth();
   const [params, setParams] = useSearchParams();
+  const [formOpen, setFormOpen] = useState(false);
 
   const tab = (params.get('tab') as TabKey) ?? 'ALL';
   const page = Number(params.get('page') ?? '1');
@@ -97,6 +101,13 @@ export function CustomersPage() {
       <PageHeader
         title="Customers"
         description="Everyone Lemuria has travelled with, and everyone about to."
+        actions={
+          can('customer.create') ? (
+            <Button leadingIcon={<Plus className="size-4" aria-hidden />} onClick={() => setFormOpen(true)}>
+              New Customer
+            </Button>
+          ) : null
+        }
       >
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <Kpi label="Total" value={summary.data?.total} />
@@ -276,6 +287,8 @@ export function CustomersPage() {
           )}
         </Card>
       </div>
+
+      <CustomerFormModal open={formOpen} onClose={() => setFormOpen(false)} />
     </>
   );
 }

@@ -6,6 +6,7 @@ import {
   Mail,
   MapPin,
   MessageCircle,
+  Pencil,
   Phone,
   Plane,
   StickyNote,
@@ -30,11 +31,14 @@ import {
   Textarea,
   type TabItem,
 } from '@/components/ui';
+import { useAuth } from '@/features/auth/AuthContext';
 import { DocumentsPanel } from '@/features/documents/DocumentsPanel';
 import { formatDate, formatMoney, formatPhone, timeAgo } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { useAddCustomerNote, useCustomer, useCustomerTimeline } from './api';
+import { CustomerFormModal } from './CustomerFormModal';
 import { PassportsPanel } from './PassportsPanel';
+import { PreferencesModal } from './PreferencesModal';
 import { TierBadge } from './TierBadge';
 
 type TabKey = 'OVERVIEW' | 'DOCUMENTS' | 'HISTORY' | 'TIMELINE';
@@ -44,8 +48,11 @@ const ACTION_LINK =
 
 export function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { can } = useAuth();
   const profile = useCustomer(id);
   const [tab, setTab] = useState<TabKey>('OVERVIEW');
+  const [editOpen, setEditOpen] = useState(false);
+  const [prefsOpen, setPrefsOpen] = useState(false);
 
   if (profile.isPending) return <LoadingState label="Loading customer" />;
   if (profile.isError) {
@@ -128,6 +135,15 @@ export function CustomerDetailPage() {
                 Email
               </a>
             )}
+            {can('customer.update') && (
+              <Button
+                variant="secondary"
+                leadingIcon={<Pencil className="size-4" aria-hidden />}
+                onClick={() => setEditOpen(true)}
+              >
+                Edit
+              </Button>
+            )}
           </div>
         </div>
 
@@ -165,7 +181,7 @@ export function CustomerDetailPage() {
       </div>
 
       <div className="p-4 sm:p-6">
-        {tab === 'OVERVIEW' && <OverviewTab data={data} />}
+        {tab === 'OVERVIEW' && <OverviewTab data={data} onEditPreferences={() => setPrefsOpen(true)} />}
 
         {tab === 'DOCUMENTS' && (
           <div className="grid gap-5 xl:grid-cols-3">
@@ -185,11 +201,25 @@ export function CustomerDetailPage() {
         {tab === 'HISTORY' && <HistoryTab data={data} />}
         {tab === 'TIMELINE' && <TimelineTab customerId={customer.id} />}
       </div>
+
+      <CustomerFormModal open={editOpen} onClose={() => setEditOpen(false)} existing={customer} />
+      <PreferencesModal
+        open={prefsOpen}
+        onClose={() => setPrefsOpen(false)}
+        customerId={customer.id}
+        existing={data.preferences}
+      />
     </>
   );
 }
 
-function OverviewTab({ data }: { data: NonNullable<ReturnType<typeof useCustomer>['data']> }) {
+function OverviewTab({
+  data,
+  onEditPreferences,
+}: {
+  data: NonNullable<ReturnType<typeof useCustomer>['data']>;
+  onEditPreferences: () => void;
+}) {
   const { customer, preferences } = data;
 
   return (
@@ -302,7 +332,14 @@ function OverviewTab({ data }: { data: NonNullable<ReturnType<typeof useCustomer
 
       <div className="space-y-5">
         <Card>
-          <CardHeader title="Travel preferences" />
+          <CardHeader
+            title="Travel preferences"
+            action={
+              <Button variant="ghost" size="sm" onClick={onEditPreferences}>
+                {preferences ? 'Edit' : 'Add'}
+              </Button>
+            }
+          />
           <CardBody>
             {preferences ? (
               <dl className="space-y-3">
