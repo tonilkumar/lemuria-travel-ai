@@ -17,6 +17,7 @@ import { customerPassports, visaCases, visaChecklistItems } from '../schema/visa
 import { PERMISSIONS, ROLE_PERMISSIONS, ROLES, type Role } from '@lemuria/shared';
 import { nextCode, normaliseName } from '../../lib/codes.js';
 import { hashPassword } from '../../lib/security.js';
+import { seedQuotationConfig } from './quotations.js';
 import {
   CUSTOMER_NOTES,
   DEFAULT_VISA_CHECKLIST,
@@ -170,6 +171,11 @@ async function main(): Promise<void> {
       })),
     )
     .onConflictDoNothing();
+
+  const quotationConfig = await seedQuotationConfig(db);
+  console.log(
+    `  quotation config: ${quotationConfig.rates} tax rates (all PROVISIONAL), ${quotationConfig.settings} approval thresholds (PLACEHOLDERS)`,
+  );
 
   const sourceRows = await db.select().from(leadSources);
   const travelTypeRows = await db.select().from(travelTypes);

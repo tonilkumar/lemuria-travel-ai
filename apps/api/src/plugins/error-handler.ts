@@ -16,6 +16,30 @@ interface PgError {
   detail?: string;
 }
 
+/**
+ * A Fastify error carrying a 4xx status is a client mistake the framework
+ * caught before our code ran. 5xx from Fastify is still a real fault.
+ */
+function isClientFastifyError(err: unknown): boolean {
+  const candidate = err as { statusCode?: unknown; code?: unknown };
+  return (
+    typeof candidate.statusCode === 'number' &&
+    candidate.statusCode >= 400 &&
+    candidate.statusCode < 500 &&
+    typeof candidate.code === 'string' &&
+    candidate.code.startsWith('FST_')
+  );
+}
+
+/** User-facing text for the framework rejections worth explaining. */
+const CLIENT_ERROR_MESSAGES: Record<string, string> = {
+  FST_ERR_CTP_EMPTY_JSON_BODY: 'Send a JSON body, or omit the content-type header.',
+  FST_ERR_CTP_INVALID_MEDIA_TYPE: 'That content type is not supported here.',
+  FST_ERR_CTP_INVALID_JSON_BODY: 'The request body is not valid JSON.',
+  FST_ERR_CTP_BODY_TOO_LARGE: 'That request is too large.',
+  FST_ERR_VALIDATION: 'Some fields need attention.',
+};
+
 function zodDetails(err: ZodError): Record<string, string[]> {
   const out: Record<string, string[]> = {};
   for (const issue of err.issues) {
@@ -65,6 +89,23 @@ export default fp(
         code = 'PAYLOAD_TOO_LARGE';
         status = 413;
         message = 'That file is too large.';
+        unexpected = false;
+      } else if (isClientFastifyError(err)) {
+        // Framework-level rejections — malformed JSON, empty body, wrong
+        // content-type. These are the caller's mistake, not a server fault, and
+        // reporting them as 500 both misleads the client and buries a real
+        // fault in the noise.
+        const fastifyError = err as { statusCode: number; code?: string };
+        status = fastifyError.statusCode;
+        code =
+          status === 415
+            ? 'UNSUPPORTED_MEDIA_TYPE'
+            : status === 413
+              ? 'PAYLOAD_TOO_LARGE'
+              : status === 404
+                ? 'NOT_FOUND'
+                : 'VALIDATION_ERROR';
+        message = CLIENT_ERROR_MESSAGES[fastifyError.code ?? ''] ?? 'That request could not be read.';
         unexpected = false;
       } else {
         const pg = err as unknown as PgError;
