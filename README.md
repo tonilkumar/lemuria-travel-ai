@@ -14,7 +14,9 @@ lifecycle, and the same person stays one record however they reach us.
 | Application shell + design system | **Shipped** |
 | Dashboard (real Postgres aggregates) | **Shipped** |
 | Leads & Follow-ups | **Shipped** |
-| Customers 360 | Schema ready, UI pending |
+| Customers 360 | **Shipped** |
+| Document repository | **Shipped** |
+| Lead → Customer conversion | **Shipped** |
 | Quotation / Itinerary / Visa / Passport | Schema + API surface ready, UI pending |
 | Communication / Finance / Reports / LIA | Schema ready |
 
@@ -31,6 +33,7 @@ disabled and marked *Soon* rather than leading to a dead page.
 | Database | PostgreSQL 17 via Drizzle ORM + drizzle-kit migrations |
 | Jobs | BullMQ on Redis |
 | Auth | JWT access tokens + rotating opaque refresh tokens, Argon2id hashing |
+| Storage | Provider interface with local-disk and S3-compatible drivers |
 
 Rationale for each choice is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 

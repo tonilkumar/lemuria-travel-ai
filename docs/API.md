@@ -124,6 +124,62 @@ merged automatically.
 mirrors the visibility rule the list uses, so a tab count always describes the
 rows that tab actually shows.
 
+### Customers
+
+| Method | Path | Permission |
+| --- | --- | --- |
+| GET | `/customers` | `customer.read` |
+| GET | `/customers/summary` | `customer.read` |
+| POST | `/customers/check-duplicates` | `customer.create` |
+| POST | `/customers` | `customer.create` |
+| GET | `/customers/:id` | `customer.read` (the 360 profile) |
+| PATCH | `/customers/:id` | `customer.update` |
+| GET | `/customers/:id/timeline` | `customer.read` |
+| PUT | `/customers/:id/preferences` | `customer.update` |
+| POST | `/customers/:id/passports` | `customer.update` **+** `document.read.sensitive` |
+| POST | `/customers/:id/notes` | `customer.update` |
+| POST | `/customers/:id/recalculate` | `customer.update` |
+| DELETE | `/customers/:id` | `customer.delete` (soft delete) |
+| POST | `/leads/:id/convert` | `lead.convert` **+** `customer.create` |
+
+`GET /customers` filters: `search`, `tier`, `ownerId`, `mine`, `isActive`,
+`repeatOnly`, `passportExpiringInDays`, `createdFrom`, `createdTo`.
+
+The 360 profile is assembled from parallel queries rather than one wide join —
+a customer with twelve bookings and forty documents would otherwise multiply
+into hundreds of duplicated rows for the application to de-fan in memory.
+
+`POST /leads/:id/convert` refuses an illegal transition (an `OPEN` lead cannot
+convert directly) and refuses a second conversion with `CONFLICT`. The lead is
+never deleted: it keeps its code, score history and timeline, and gains a
+customer link.
+
+### Documents
+
+| Method | Path | Permission |
+| --- | --- | --- |
+| GET | `/documents` | `document.read` |
+| GET | `/documents/expiring` | `document.read` |
+| POST | `/documents` | `document.upload` (multipart) |
+| GET | `/documents/:id/download` | `document.read` |
+| POST | `/documents/:id/verify` | `document.upload` |
+| DELETE | `/documents/:id` | `document.delete` (soft delete) |
+
+Three rules govern this module:
+
+- **Classification gates visibility.** `PASSPORT`, `VISA` and `IDENTITY_PROOF`
+  need `document.read.sensitive`. A caller without it does not see them in any
+  list, on the 360 profile, or in the timeline — they do not learn such a
+  document exists. The profile sets `documentsRestricted: true` so the UI can
+  say so honestly rather than implying the customer has no documents.
+- **Storage keys never leave the server.** Responses go through a projection
+  that strips `storageKey`, `storageDriver` and the checksum. Downloads run
+  through the authorised route, which re-checks classification and writes a
+  `document_access_log` row — every read of a passport is attributable.
+- **Content type is sniffed, not trusted.** The declared MIME is a claim; the
+  leading bytes decide. A text file renamed `.png` is rejected, and a ZIP is
+  accepted only when the extension says it is a DOCX or XLSX.
+
 ### Dashboard
 
 All require `dashboard.read`; company-wide figures additionally require
