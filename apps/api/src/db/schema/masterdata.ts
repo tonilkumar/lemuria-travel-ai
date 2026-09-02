@@ -1,5 +1,6 @@
 import {
   boolean,
+  date,
   index,
   integer,
   jsonb,
@@ -153,6 +154,48 @@ export const supplierTypes = pgTable(
     ...timestamps,
   },
   (t) => [uniqueIndex('supplier_types_key_idx').on(t.key)],
+);
+
+/**
+ * Tax rates, per service category.
+ *
+ * Deliberately data rather than code. Indian travel GST has more than one
+ * defensible treatment — 5% on gross without input credit, 18% with it, and
+ * margin schemes for tour operators — and which applies depends on the service,
+ * on domestic versus outbound, and on the client's accountant. Seeding a rate
+ * is not the same as knowing it is right, so every row carries `isProvisional`
+ * and the quotation shows it until an accountant confirms otherwise.
+ */
+export const taxRates = pgTable(
+  'tax_rates',
+  {
+    id: primaryId(),
+    /** hotel, flight, transfer, activity, visa, insurance, package, misc */
+    serviceCategory: varchar('service_category', { length: 40 }).notNull(),
+    name: varchar('name', { length: 120 }).notNull(),
+    /** Rate in basis points. 500 = 5%. */
+    rateBps: integer('rate_bps').notNull(),
+    /** GROSS | MARGIN | EXEMPT — what the rate is charged on. */
+    basis: varchar('basis', { length: 12 }).notNull().default('GROSS'),
+    /** Whether input tax credit may be claimed under this treatment. */
+    inputCreditAllowed: boolean('input_credit_allowed').notNull().default(false),
+    /** True for domestic-only or outbound-only rules; null applies to both. */
+    appliesToDomestic: boolean('applies_to_domestic'),
+
+    /** Set false only once a qualified accountant has confirmed the treatment. */
+    isProvisional: boolean('is_provisional').notNull().default(true),
+    /** Statutory reference, so the choice is auditable rather than folklore. */
+    authorityNote: text('authority_note'),
+
+    effectiveFrom: date('effective_from'),
+    effectiveTo: date('effective_to'),
+    isActive: boolean('is_active').notNull().default(true),
+    ...timestamps,
+  },
+  (t) => [
+    index('tax_rates_category_idx').on(t.serviceCategory, t.isActive),
+    index('tax_rates_effective_idx').on(t.effectiveFrom, t.effectiveTo),
+  ],
 );
 
 /** Application settings as typed key/value rows, editable by ADMIN. */

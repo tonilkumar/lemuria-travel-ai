@@ -8,6 +8,13 @@
       "when": 1788340743170,
       "tag": "0000_brief_fantastic_four",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788360180421,
+      "tag": "0001_famous_loners",
+      "breakpoints": true
     }
   ]
 }
