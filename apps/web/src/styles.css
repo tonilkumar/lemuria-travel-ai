@@ -1,0 +1,127 @@
+@import 'tailwindcss';
+
+/**
+ * Lemuria Travel AI design tokens.
+ *
+ * The palette is built around Lemuria's teal identity: a deep teal navigation
+ * rail, a brighter teal for primary actions, and a near-white content canvas so
+ * dense operational tables stay readable for a full working day.
+ */
+@theme {
+  /* Brand teal — primary actions, active states, focus rings. */
+  --color-teal-50: #eefbfa;
+  --color-teal-100: #d3f5f2;
+  --color-teal-200: #abeae7;
+  --color-teal-300: #74d9d6;
+  --color-teal-400: #38bfbe;
+  --color-teal-500: #16a3a4;
+  --color-teal-600: #0d8286;
+  --color-teal-700: #0f686c;
+  --color-teal-800: #115358;
+  --color-teal-900: #12464a;
+  --color-teal-950: #042b30;
+
+  /* Navigation rail — deep, desaturated teal so it recedes behind content. */
+  --color-navy-700: #0e4a50;
+  --color-navy-800: #0b3b41;
+  --color-navy-900: #082e33;
+  --color-navy-950: #051f23;
+
+  /* Neutrals carry a faint teal cast so greys never look cold next to the brand. */
+  --color-ink-50: #f7f9f9;
+  --color-ink-100: #eef2f2;
+  --color-ink-200: #dfe5e6;
+  --color-ink-300: #c5cfd1;
+  --color-ink-400: #93a1a4;
+  --color-ink-500: #6b797c;
+  --color-ink-600: #526064;
+  --color-ink-700: #414d50;
+  --color-ink-800: #2c3639;
+  --color-ink-900: #1a2224;
+
+  /* Status colours. Used identically across every module (spec §36). */
+  --color-hot-50: #fef2f2;
+  --color-hot-100: #fee2e2;
+  --color-hot-500: #ef4444;
+  --color-hot-600: #dc2626;
+  --color-hot-700: #b91c1c;
+
+  --color-warm-50: #fff7ed;
+  --color-warm-100: #ffedd5;
+  --color-warm-500: #f97316;
+  --color-warm-600: #ea580c;
+  --color-warm-700: #c2410c;
+
+  --color-cold-50: #eff6ff;
+  --color-cold-100: #dbeafe;
+  --color-cold-500: #3b82f6;
+  --color-cold-600: #2563eb;
+  --color-cold-700: #1d4ed8;
+
+  --color-success-50: #ecfdf5;
+  --color-success-100: #d1fae5;
+  --color-success-500: #10b981;
+  --color-success-600: #059669;
+  --color-success-700: #047857;
+
+  --color-danger-50: #fef2f2;
+  --color-danger-100: #fee2e2;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+
+  --font-sans:
+    'Inter var', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+
+  /* Soft, low-contrast elevation — premium SaaS, not material-design drop shadows. */
+  --shadow-card: 0 1px 2px 0 rgb(8 46 51 / 0.04), 0 1px 3px 0 rgb(8 46 51 / 0.06);
+  --shadow-raised: 0 2px 4px -1px rgb(8 46 51 / 0.06), 0 4px 12px -2px rgb(8 46 51 / 0.08);
+  --shadow-overlay: 0 8px 24px -4px rgb(8 46 51 / 0.12), 0 16px 48px -8px rgb(8 46 51 / 0.14);
+
+  --radius-card: 0.75rem;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  body {
+    @apply bg-ink-50 text-ink-800 font-sans antialiased;
+  }
+
+  /* A single visible focus treatment everywhere, including keyboard nav. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-teal-500;
+  }
+
+  /* Tabular figures keep currency and counts aligned in dense tables. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white border border-ink-200/70 rounded-xl shadow-card;
+  }
+
+  /* Sticky table headers so column meaning survives a long scroll. */
+  .data-table-head {
+    @apply sticky top-0 z-10 bg-ink-50/95 backdrop-blur-sm border-b border-ink-200;
+  }
+}
+
+/* Respect users who have asked the OS to reduce motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
