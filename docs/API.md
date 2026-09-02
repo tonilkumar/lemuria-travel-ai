@@ -138,6 +138,8 @@ rows that tab actually shows.
 | PUT | `/customers/:id/preferences` | `customer.update` |
 | POST | `/customers/:id/passports` | `customer.update` **+** `document.read.sensitive` |
 | POST | `/customers/:id/notes` | `customer.update` |
+| POST | `/customers/:id/group` | `customer.update` |
+| DELETE | `/customers/:id/group/:memberId` | `customer.update` |
 | POST | `/customers/:id/recalculate` | `customer.update` |
 | DELETE | `/customers/:id` | `customer.delete` (soft delete) |
 | POST | `/leads/:id/convert` | `lead.convert` **+** `customer.create` |
@@ -148,6 +150,12 @@ rows that tab actually shows.
 The 360 profile is assembled from parallel queries rather than one wide join —
 a customer with twelve bookings and forty documents would otherwise multiply
 into hundreds of duplicated rows for the application to de-fan in memory.
+
+A travel group is people who travel together, not a household record — every
+member keeps their own profile, passport and history. Linking two customers who
+already belong to *different* groups is refused rather than silently merging two
+families, and unlinking the second-to-last member dissolves the group instead of
+leaving a stub of one.
 
 `POST /leads/:id/convert` refuses an illegal transition (an `OPEN` lead cannot
 convert directly) and refuses a second conversion with `CONFLICT`. The lead is

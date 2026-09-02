@@ -11,6 +11,7 @@ import {
   Plane,
   StickyNote,
   Users,
+  X,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
@@ -35,8 +36,9 @@ import { useAuth } from '@/features/auth/AuthContext';
 import { DocumentsPanel } from '@/features/documents/DocumentsPanel';
 import { formatDate, formatMoney, formatPhone, timeAgo } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { useAddCustomerNote, useCustomer, useCustomerTimeline } from './api';
+import { useAddCustomerNote, useCustomer, useCustomerTimeline, useUnlinkGroupMember } from './api';
 import { CustomerFormModal } from './CustomerFormModal';
+import { LinkFamilyModal } from './LinkFamilyModal';
 import { PassportsPanel } from './PassportsPanel';
 import { PreferencesModal } from './PreferencesModal';
 import { TierBadge } from './TierBadge';
@@ -53,6 +55,7 @@ export function CustomerDetailPage() {
   const [tab, setTab] = useState<TabKey>('OVERVIEW');
   const [editOpen, setEditOpen] = useState(false);
   const [prefsOpen, setPrefsOpen] = useState(false);
+  const [linkOpen, setLinkOpen] = useState(false);
 
   if (profile.isPending) return <LoadingState label="Loading customer" />;
   if (profile.isError) {
@@ -181,7 +184,13 @@ export function CustomerDetailPage() {
       </div>
 
       <div className="p-4 sm:p-6">
-        {tab === 'OVERVIEW' && <OverviewTab data={data} onEditPreferences={() => setPrefsOpen(true)} />}
+        {tab === 'OVERVIEW' && (
+          <OverviewTab
+            data={data}
+            onEditPreferences={() => setPrefsOpen(true)}
+            onLinkFamily={() => setLinkOpen(true)}
+          />
+        )}
 
         {tab === 'DOCUMENTS' && (
           <div className="grid gap-5 xl:grid-cols-3">
@@ -203,6 +212,13 @@ export function CustomerDetailPage() {
       </div>
 
       <CustomerFormModal open={editOpen} onClose={() => setEditOpen(false)} existing={customer} />
+      <LinkFamilyModal
+        open={linkOpen}
+        onClose={() => setLinkOpen(false)}
+        customerId={customer.id}
+        customerName={customer.fullName}
+        excludeIds={data.group.map((m) => m.memberId)}
+      />
       <PreferencesModal
         open={prefsOpen}
         onClose={() => setPrefsOpen(false)}
@@ -216,10 +232,13 @@ export function CustomerDetailPage() {
 function OverviewTab({
   data,
   onEditPreferences,
+  onLinkFamily,
 }: {
   data: NonNullable<ReturnType<typeof useCustomer>['data']>;
   onEditPreferences: () => void;
+  onLinkFamily: () => void;
 }) {
+  const unlink = useUnlinkGroupMember();
   const { customer, preferences } = data;
 
   return (
@@ -374,14 +393,21 @@ function OverviewTab({
         </Card>
 
         <Card>
-          <CardHeader title="Family &amp; group" />
+          <CardHeader
+            title="Family &amp; group"
+            action={
+              <Button variant="ghost" size="sm" onClick={onLinkFamily}>
+                Link member
+              </Button>
+            }
+          />
           <CardBody>
             {data.group.length === 0 ? (
               <p className="text-sm text-ink-500">Not linked to a travel group.</p>
             ) : (
-              <ul className="space-y-2.5">
+              <ul className="space-y-1">
                 {data.group.map((m) => (
-                  <li key={m.memberId} className="flex items-center gap-2.5">
+                  <li key={m.memberId} className="group/member flex items-center gap-2.5 py-0.5">
                     <Users className="size-3.5 shrink-0 text-ink-400" aria-hidden />
                     <Link
                       to={`/customers/${m.memberId}`}
@@ -392,6 +418,16 @@ function OverviewTab({
                     {m.relationship && (
                       <span className="text-xs text-ink-400">{m.relationship}</span>
                     )}
+                    <button
+                      type="button"
+                      aria-label={`Unlink ${m.memberName}`}
+                      onClick={() =>
+                        unlink.mutate({ id: data.customer.id, memberId: m.memberId })
+                      }
+                      className="ml-auto rounded p-1 text-ink-300 opacity-0 transition hover:bg-danger-50 hover:text-danger-600 focus-visible:opacity-100 group-hover/member:opacity-100"
+                    >
+                      <X className="size-3.5" aria-hidden />
+                    </button>
                   </li>
                 ))}
               </ul>

@@ -3,6 +3,7 @@ import {
   createCustomerSchema,
   customerListQuerySchema,
   customerPreferencesSchema,
+  linkGroupMemberSchema,
   passportSchema,
   updateCustomerSchema,
 } from '@lemuria/shared';
@@ -17,6 +18,7 @@ import { ok, paginated } from '../../lib/reply.js';
 import { requireUser } from '../../plugins/auth.js';
 import { findDuplicates } from '../leads/duplicate.service.js';
 import { convertLead } from './conversion.service.js';
+import { linkGroupMember, unlinkGroupMember } from './group.service.js';
 import * as customerService from './customer.service.js';
 
 const idParam = z.object({ id: z.string().uuid() });
@@ -113,6 +115,30 @@ export async function customerRoutes(app: FastifyInstance): Promise<void> {
     reply.status(201);
     return ok(created);
   });
+
+  app.post('/:id/group', { preHandler: [app.authorize('customer.update')] }, async (req, reply) => {
+    const { id } = idParam.parse(req.params);
+    const input = linkGroupMemberSchema.parse(req.body);
+    const result = await linkGroupMember(
+      id,
+      input.customerId,
+      input.relationship,
+      auditContext(req),
+    );
+    reply.status(201);
+    return ok(result);
+  });
+
+  app.delete(
+    '/:id/group/:memberId',
+    { preHandler: [app.authorize('customer.update')] },
+    async (req) => {
+      const { id, memberId } = z
+        .object({ id: z.string().uuid(), memberId: z.string().uuid() })
+        .parse(req.params);
+      return ok(await unlinkGroupMember(id, memberId, auditContext(req)));
+    },
+  );
 
   app.post('/:id/recalculate', { preHandler: [app.authorize('customer.update')] }, async (req) => {
     const { id } = idParam.parse(req.params);

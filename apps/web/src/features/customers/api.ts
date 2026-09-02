@@ -238,6 +238,31 @@ export function useAddCustomerNote() {
   });
 }
 
+export function useLinkGroupMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      customerId,
+      relationship,
+    }: {
+      id: string;
+      customerId: string;
+      relationship?: string;
+    }) => api.post(`/customers/${id}/group`, { customerId, relationship }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['customers'] }),
+  });
+}
+
+export function useUnlinkGroupMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, memberId }: { id: string; memberId: string }) =>
+      api.delete(`/customers/${id}/group/${memberId}`),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['customers'] }),
+  });
+}
+
 export function useCheckCustomerDuplicates() {
   return useMutation({
     mutationFn: (input: { fullName: string; phone: string; email?: string }) =>
