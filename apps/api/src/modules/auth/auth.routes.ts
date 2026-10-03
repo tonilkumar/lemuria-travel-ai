@@ -1,6 +1,6 @@
 import { changePasswordSchema, loginSchema } from '@lemuria/shared';
 import type { FastifyInstance, FastifyReply } from 'fastify';
-import { isProd } from '../../config/env.js';
+import { secureCookies } from '../../config/env.js';
 import { auditContext } from '../../lib/audit.js';
 import { unauthenticated } from '../../lib/errors.js';
 import { ok } from '../../lib/reply.js';
@@ -18,7 +18,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     reply.setCookie(REFRESH_COOKIE, token, {
       httpOnly: true,
       sameSite: 'lax',
-      secure: isProd,
+      secure: secureCookies,
       path: '/api/v1/auth',
       maxAge: Math.floor(authService.REFRESH_TTL_MS / 1000),
     });

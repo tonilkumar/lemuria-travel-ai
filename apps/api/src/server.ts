@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import Fastify from 'fastify';
-import { corsOrigins, env, isProd } from './config/env.js';
+import { corsOrigins, env, isProd, secureCookies } from './config/env.js';
 import { logger } from './lib/logger.js';
 import authPlugin from './plugins/auth.js';
 import errorHandlerPlugin from './plugins/error-handler.js';
@@ -28,7 +28,7 @@ export async function buildServer() {
 
   await app.register(import('@fastify/cookie'), {
     secret: env.JWT_REFRESH_SECRET,
-    parseOptions: { httpOnly: true, sameSite: 'lax', secure: isProd, path: '/' },
+    parseOptions: { httpOnly: true, sameSite: 'lax', secure: secureCookies, path: '/' },
   });
 
   await app.register(import('@fastify/rate-limit'), {

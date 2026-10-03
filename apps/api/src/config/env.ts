@@ -79,6 +79,9 @@ export type Env = typeof env;
 export const isProd = env.NODE_ENV === 'production';
 export const isTest = env.NODE_ENV === 'test';
 
+// Browsers drop Secure cookies on plain-HTTP origins, so tie the flag to the served scheme.
+export const secureCookies = env.APP_URL.startsWith('https://');
+
 export const corsOrigins = env.CORS_ORIGINS.split(',')
   .map((s) => s.trim())
   .filter(Boolean);
